@@ -3,7 +3,8 @@ package main
 import (
 	"crypto/tls"
 	"flag"
-	"fmt"
+	"goedge/middleware/a"
+	"goedge/middleware/b"
 	"log"
 	"net/http"
 	"time"
@@ -12,19 +13,22 @@ import (
 	"goji.io/pat"
 )
 
-func hello(w http.ResponseWriter, r *http.Request) {
-	name := pat.Param(r, "name")
-	fmt.Fprintf(w, "Hello, %s!\n", name)
-}
-
 func main() {
 	addr := flag.String("addr", "localhost:443", "address to listen on")
 	certFile := flag.String("cert", "localhost.pem", "TLS certificate file")
 	keyFile := flag.String("key", "localhost-key.pem", "TLS private key file")
 	flag.Parse()
 
+	// misuse resistant middleware pattern.  You can't add NewEchoNameHandler to the mux
+	// without having (a) constructed and (b) registered NewNAmeExtractorMiddleware with
+	// the mux.
+	nameMux := goji.SubMux()
+	nameMiddleware := a.NewNameExtractorMiddleware("name")
+	nameKey := nameMiddleware.Register(nameMux)
+	nameMux.Handle(pat.New(""), b.NewEchoNameHandler(nameKey))
+
 	mux := goji.NewMux()
-	mux.HandleFunc(pat.Get("/hello/:name"), hello)
+	mux.Handle(pat.Get("/hello/:name"), nameMux)
 
 	server := &http.Server{
 		Addr: *addr,
