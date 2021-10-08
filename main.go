@@ -24,7 +24,13 @@ func main() {
 	// the mux.
 	nameMux := goji.SubMux()
 	nameMiddleware := a.NewNameExtractorMiddleware("name")
+	// the only way to get an a.NameKey (needed to construct NewEchoNameHandler) is to register
+	// this NameExtractorMiddleware with the mux.
 	nameKey := nameMiddleware.Register(nameMux)
+	// because we have to explicitly thread nameKey to NewEchoHandler, we enforce 2 invariants:
+	// 1. NameExtractorMiddleware definitely exists and is registered with the mux
+	// 2. EchoHandler is _after_ NameExtractorMiddleware (it can't be before, because it relies
+	//    on the result of nameMiddleware.Register)
 	nameMux.Handle(pat.New(""), b.NewEchoNameHandler(nameKey))
 
 	mux := goji.NewMux()
