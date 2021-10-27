@@ -37,8 +37,8 @@ func main() {
 	mux.Handle(pat.Get("/hello/:name"), nameMux)
 
 	server := &http.Server{
-		Addr: *addr,
-		Handler: mux,
+		Addr:         *addr,
+		Handler:      mux,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
 		IdleTimeout:  15 * time.Second,

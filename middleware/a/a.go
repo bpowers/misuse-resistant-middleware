@@ -18,6 +18,7 @@ type NameKey interface {
 
 // nameKey is (the only) type that be used as a NameKey interface
 type nameKey int
+
 func (nameKey) nameKeyMarker() {}
 
 // the single instance of nameKey.  should be `const`, but go doesn't let interfaces be const
